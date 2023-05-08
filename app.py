@@ -11,12 +11,50 @@ def main(prod_run=False):
         collection = config['test_collection']
         
     # Get data in Data Lake JSON Format
-    data_items = get_json_items(config['data_source'])
+    data_items = get_data_items(config['data_source'])
     
+    token = auth(config['url'], config['user'], config['pass'])
     
+    default_head = get_default_header(collection, token)
+    
+    populate_data(data_items)
+    
+def auth(url, user, pwd):
+    data = { 'Grant': 'password', 'Username': user, 'Password': pwd }
 
-# Reads excel file, adds unique key, then converts to Data Lake JSON format
-def get_json_items(file_path):
+    # Send a post request to get an access token
+    auth_response = requests.post(f"{url}/authenticate", data=data)
+
+    return auth_response.json()['accesstoken']
+
+# Returns Python obj for default header
+def get_default_header(collection, token):
+    header = { 
+        'headers': {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {token}'
+        }, 
+        'data': {
+            "CollectionName": collection,
+            "Items": []
+        } 
+    }
+    
+    return header
+    
+def populate_data(url, default_header, data_items): #
+    for i in range(0, len(data_items), 100):
+        to_submit = data_items[i:i+99]
+        
+        default_header['data']['Items'] = to_submit
+        
+        headers = json.dumps(default_header['headers'])
+        data = json.dumps(default_header['data'])
+        
+        requests.post(f"{url}/additems", headers=headers, data=data)
+        
+# Reads excel file, adds unique key, then converts to Python object that can be converted to Data Lake JSON
+def get_data_items(file_path):
     df = pd.read_excel(file_path, sheet_name=0)
     
     # Add unique row number key
@@ -30,7 +68,7 @@ def get_json_items(file_path):
     
     # Get primary key from dataframe
     primary_key = json_raw['schema']['primaryKey'][0]
-    
+
     items_list = []
     
     # Iterate through each row of data
@@ -56,8 +94,7 @@ def get_json_items(file_path):
                 
         items_list.append(item)
         
-    # Converts Python object to JSON
-    return json.dumps(items_list)
+    return items_list
     
 if __name__ == "__main__":
     prod_run = False 
