@@ -6,6 +6,7 @@ prod_collection = "EmeryExample"
 data_source = "DDAssessmentSampleData.xlsx"
 
 def main(prod_run=False):
+    # Determine to use test or production collection for Data Lake
     if prod_run:
         collection = prod_collection
     else:
@@ -26,7 +27,7 @@ def get_json_items(file_path):
     # Convert table to iterable json format
     json_raw = json.loads(df.to_json(orient='table'))
     
-    # Get primary key from DF
+    # Get primary key from dataframe
     primary_key = json_raw['schema']['primaryKey'][0]
     
     items_list = []
@@ -64,5 +65,5 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1] == 'prod':
             prod_run = True
-    print(prod_run)
+
     main(prod_run)
