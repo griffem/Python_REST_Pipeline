@@ -1,20 +1,21 @@
-import requests, json, sys
+import requests, json, sys, yaml
 import pandas as pd
 
-test_collection = "EmeryTest"
-prod_collection = "EmeryExample"
-data_source = "DDAssessmentSampleData.xlsx"
+config = yaml.safe_load(open('config.yml', mode='r'))
 
 def main(prod_run=False):
     # Determine to use test or production collection for Data Lake
     if prod_run:
-        collection = prod_collection
+        collection = config['prod_collection']
     else:
-        collection = test_collection
+        collection = config['test_collection']
         
-    data_items = get_json_items(data_source)
+    # Get data in Data Lake JSON Format
+    data_items = get_json_items(config['data_source'])
+    
+    
 
-# Reads excel file, adds unique key, then converts to JSON format
+# Reads excel file, adds unique key, then converts to Data Lake JSON format
 def get_json_items(file_path):
     df = pd.read_excel(file_path, sheet_name=0)
     
