@@ -1,3 +1,6 @@
+# SAMPLE CONFIG
+# Rename to "config.yml" and fill fields correctly to run application
+
 url: "https://data.url.net/api/v2.5"
 user: "jsmith"
 pass: "Candycanelane123"
